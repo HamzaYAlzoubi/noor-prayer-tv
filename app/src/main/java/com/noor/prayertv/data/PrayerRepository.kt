@@ -34,6 +34,20 @@ class PrayerRepository {
         return SimpleDateFormat("dd-MM-yyyy", Locale.ENGLISH).format(Date())
     }
 
+    private fun todayMmDd(): String {
+        return SimpleDateFormat("MM-dd", Locale.ENGLISH).format(Date())
+    }
+
+    // 100% للأردن: جلب من الجدول الرسمي لوزارة الأوقاف (خرجا وإربد وعمان والباقي)
+    suspend fun getOfficialJordanIfNeeded(city: com.noor.prayertv.data.models.City): JordanTimings? {
+        if (city.countryEn.lowercase() != "jordan") return null
+        return try {
+            JordanOfficialDataSource.getOfficialTimings(city.nameEn, todayMmDd())
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     suspend fun getTimings(
         latitude: Double,
         longitude: Double,

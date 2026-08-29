@@ -124,6 +124,9 @@ class PrayerViewModel(application: Application) : AndroidViewModel(application) 
             val method = _uiState.value.methodId
             val school = _uiState.value.school
 
+            // 100% للأردن: جلب الجدول الرسمي للأوقاف أولاً
+            val official = repo.getOfficialJordanIfNeeded(city)
+
             val result = repo.getTimings(city.latitude, city.longitude, method, school, city.timeZone)
             result.onSuccess { resp ->
                 val data = resp.data
@@ -134,8 +137,20 @@ class PrayerViewModel(application: Application) : AndroidViewModel(application) 
                 val gregStr = "${greg.weekday.en}, ${greg.day} ${greg.month.en} ${greg.year}"
 
                 val nowMinutes = minutesNow()
-                val timings = data.timings
-                // 6 مواقيت (5 فروض + الشروق) - الشروق ثاني بطاقة بعد الفجر، والقادمة تشمل الشروق
+                // استخدم الرسمي للأردن إن وجد، وإلا استخدم Aladhan (method 23 للأردن = 100% للفروض، 5د فرق شروق فقط)
+                val timings = if (official != null) {
+                    data.timings.copy(
+                        fajr = official.fajr,
+                        sunrise = official.sunrise,
+                        dhuhr = official.dhuhr,
+                        asr = official.asr,
+                        maghrib = official.maghrib,
+                        isha = official.isha
+                    )
+                } else {
+                    data.timings
+                }
+
                 val ordered = listOf(
                     "Fajr" to timings.fajr,
                     "Sunrise" to timings.sunrise,
@@ -151,13 +166,15 @@ class PrayerViewModel(application: Application) : AndroidViewModel(application) 
                 if (nextName == null) nextName = "Fajr"
 
                 val allPrayers = timings.toPrayerList(nextName, nowMinutes)
-                // 6 مواقيت كاملة - إبقاء الشروق كبطاقة ثانية بعد الفجر
-                val prayers = allPrayers // لا فلترة - 6 بطاقات
+                val prayers = allPrayers
+
+                // استبدال timings داخل data للـ UI calendar إن لزم
+                val mergedData = data.copy(timings = timings)
 
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     isRefreshing = false,
-                    timingData = data,
+                    timingData = mergedData,
                     prayers = prayers,
                     nextPrayer = prayers.find { it.isNext },
                     hijriDate = hijriStr,
@@ -167,11 +184,46 @@ class PrayerViewModel(application: Application) : AndroidViewModel(application) 
                 )
                 updateCountdown()
             }.onFailure { e ->
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    isRefreshing = false,
-                    error = e.message ?: "خطأ في الاتصال - تأكد من الإنترنت"
-                )
+                // حتى لو فشل Aladhan، حاول عرض الرسمي وحده (للأردن)
+                if (official != null) {
+                    val nowMinutes = minutesNow()
+                    val timings = com.noor.prayertv.data.models.Timings(
+                        fajr = official.fajr,
+                        sunrise = official.sunrise,
+                        dhuhr = official.dhuhr,
+                        asr = official.asr,
+                        sunset = official.maghrib,
+                        maghrib = official.maghrib,
+                        isha = official.isha,
+                        imsak = official.fajr,
+                        midnight = "00:00",
+                        firstthird = "00:00",
+                        lastthird = "00:00"
+                    )
+                    val allPrayers = timings.toPrayerList(null, nowMinutes)
+                    // حدد القادمة يدوياً
+                    val orderedF = listOf("Fajr" to timings.fajr, "Sunrise" to timings.sunrise, "Dhuhr" to timings.dhuhr, "Asr" to timings.asr, "Maghrib" to timings.maghrib, "Isha" to timings.isha)
+                    var nextN: String? = null
+                    for ((n, t) in orderedF) if (toMinutes(t) > nowMinutes) { nextN = n; break }
+                    if (nextN == null) nextN = "Fajr"
+                    val prayers2 = timings.toPrayerList(nextN, nowMinutes)
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        isRefreshing = false,
+                        prayers = prayers2,
+                        nextPrayer = prayers2.find { it.isNext },
+                        hijriDate = "",
+                        gregorianDate = "",
+                        error = null
+                    )
+                    updateCountdown()
+                } else {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        isRefreshing = false,
+                        error = e.message ?: "خطأ في الاتصال - تأكد من الإنترنت"
+                    )
+                }
             }
         }
     }
