@@ -48,6 +48,7 @@ import com.noor.prayertv.ui.theme.BgSurfaceFocused
 import com.noor.prayertv.ui.theme.GoldPrimary
 import com.noor.prayertv.ui.theme.TextPrimary
 import com.noor.prayertv.ui.theme.TextSecondary
+import com.noor.prayertv.viewmodel.PrayerViewModel
 
 @Composable
 fun HomeScreen(
@@ -150,7 +151,10 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.spacedBy(14.dp),
                     contentPadding = PaddingValues(vertical = 10.dp, horizontal = 4.dp)
                 ) {
-                    items(state.prayers) { prayer ->
+                    items(
+                        items = state.prayers,
+                        key = { it.nameEn }
+                    ) { prayer ->
                         PrayerCard(
                             prayer = prayer,
                             onClick = { }
