@@ -203,19 +203,43 @@ class PrayerViewModel(application: Application) : AndroidViewModel(application) 
         return c.get(Calendar.HOUR_OF_DAY) * 60 + c.get(Calendar.MINUTE)
     }
 
+    private fun methodForCity(city: City): Int = when (city.countryEn.lowercase()) {
+        "egypt" -> 5 // الهيئة المصرية
+        "turkey" -> 13 // Diyanet
+        "algeria" -> 19
+        "tunisia" -> 3 // MWL
+        "morocco" -> 3
+        "sudan" -> 5
+        "france" -> 12
+        "germany" -> 3
+        "uk", "united kingdom" -> 3
+        "usa", "united states" -> 2 // ISNA
+        "indonesia" -> 20
+        "malaysia" -> 3
+        "emirates", "uae" -> 8 // Gulf
+        "qatar" -> 8
+        "kuwait" -> 8
+        "bahrain" -> 8
+        "oman" -> 8
+        else -> 4 // أم القرى للسعودية والأردن وفلسطين ولبنان وسوريا والعراق واليمن وليبيا وغالب العربية
+    }
+
     fun selectCity(index: Int) {
         val city = Cities.all.getOrElse(index) { Cities.default }
+        val autoMethod = methodForCity(city)
         viewModelScope.launch {
             app.dataStore.edit {
                 it[KEY_CITY_INDEX] = index
                 it[KEY_IS_CUSTOM] = false
+                it[KEY_METHOD] = autoMethod
             }
-            _uiState.value = _uiState.value.copy(city = city)
+            _uiState.value = _uiState.value.copy(city = city, methodId = autoMethod)
             refresh()
         }
     }
 
     fun selectCustomCity(city: City) {
+        val autoMethod = methodForCity(city)
         viewModelScope.launch {
             app.dataStore.edit {
                 it[KEY_CUSTOM_NAME_AR] = city.nameAr
@@ -226,8 +250,9 @@ class PrayerViewModel(application: Application) : AndroidViewModel(application) 
                 it[KEY_CUSTOM_LON] = city.longitude
                 it[KEY_CUSTOM_TZ] = city.timeZone
                 it[KEY_IS_CUSTOM] = true
+                it[KEY_METHOD] = autoMethod
             }
-            _uiState.value = _uiState.value.copy(city = city)
+            _uiState.value = _uiState.value.copy(city = city, methodId = autoMethod)
             refresh()
         }
     }

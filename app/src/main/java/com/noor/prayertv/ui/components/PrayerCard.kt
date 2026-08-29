@@ -73,13 +73,10 @@ fun PrayerCard(
         animationSpec = tween(150), label = "scale"
     )
 
-    val isSunrise = prayer.nameEn == "Sunrise"
-
-    // الخلفية: مميزة للصلاة القادمة بدون شريط علوي - الشروق بتمييز خفيف ذهبي muted
+    // الخلفية: مميزة للصلاة القادمة فقط - الشروق كارد عادي مثل الفروض
     val bg = when {
         isFocused -> BgSurfaceFocused
-        prayer.isNext -> Color(0xFF22332D) // أخضر غامق مميز للقادمة
-        isSunrise -> BgSurface // الشروق نفس الخلفية لكن مع تمييز نصي GoldMuted
+        prayer.isNext -> Color(0xFF22332D)
         else -> BgSurface
     }
 
@@ -193,11 +190,7 @@ fun PrayerCard(
                         text = prayer.nameAr,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = when {
-                            prayer.isNext -> GoldPrimary
-                            isSunrise -> GoldMuted
-                            else -> TextPrimary
-                        },
+                        color = if (prayer.isNext) GoldPrimary else TextPrimary,
                         textAlign = TextAlign.Start,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -206,11 +199,7 @@ fun PrayerCard(
                         text = prayer.nameEn,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium,
-                        color = when {
-                            prayer.isNext -> GoldPrimary.copy(alpha = 0.85f)
-                            isSunrise -> GoldMuted.copy(alpha = 0.85f)
-                            else -> TextSecondary
-                        },
+                        color = if (prayer.isNext) GoldPrimary.copy(alpha = 0.85f) else TextSecondary,
                         textAlign = TextAlign.Start,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -222,11 +211,7 @@ fun PrayerCard(
                     text = to12h(prayer.time),
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
-                    color = when {
-                        prayer.isNext -> GoldPrimary
-                        isSunrise -> GoldMuted
-                        else -> TextPrimary
-                    },
+                    color = if (prayer.isNext) GoldPrimary else TextPrimary,
                     letterSpacing = 0.3.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Visible,
