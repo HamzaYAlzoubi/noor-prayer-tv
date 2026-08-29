@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">نور - مواقيت الصلاة</string>
+    <string name="app_name_en">Noor Prayer TV</string>
+    <string name="next_prayer">الصلاة القادمة</string>
+    <string name="today_prayers">صلوات اليوم</string>
+    <string name="qibla">اتجاه القبلة</string>
+    <string name="calendar">التقويم الشهري</string>
+    <string name="city">المدينة</string>
+    <string name="method">طريقة الحساب</string>
+    <string name="settings">الإعدادات</string>
+    <string name="fajr">الفجر</string>
+    <string name="sunrise">الشروق</string>
+    <string name="dhuhr">الظهر</string>
+    <string name="asr">العصر</string>
+    <string name="maghrib">المغرب</string>
+    <string name="isha">العشاء</string>
+</resources>

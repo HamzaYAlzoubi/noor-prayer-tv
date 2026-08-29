@@ -1,0 +1,13 @@
+.gradle
+/build
+/app/build
+/.idea
+*.iml
+.local.properties
+.DS_Store
+*.apk
+*.aab
+.gradle/
+gradle/wrapper/gradle-wrapper.jar
+.opencode/
+node_modules/
