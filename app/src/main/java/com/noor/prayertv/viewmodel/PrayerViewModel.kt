@@ -74,7 +74,7 @@ class PrayerViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch {
             val prefs = app.dataStore.data.first()
             val cityIdx = prefs[KEY_CITY_INDEX] ?: 0
-            val method = prefs[KEY_METHOD] ?: 4
+            val storedMethod = prefs[KEY_METHOD]
             val school = prefs[KEY_SCHOOL] ?: 0
             val isCustom = prefs[KEY_IS_CUSTOM] ?: false
             val city = if (isCustom) {
@@ -92,7 +92,20 @@ class PrayerViewModel(application: Application) : AndroidViewModel(application) 
                     Cities.all.getOrElse(cityIdx) { Cities.default }
                 }
             } else {
+                // إصلاح هجرة الفهرس بعد حذف خرجا: إذا كان الفهرس المخزن يشير لعمان بينما الافتراضي إربد، أبقِ الافتراضي
+                // Also handle index out of range after list shrank
                 Cities.all.getOrElse(cityIdx) { Cities.default }
+            }
+            // الأردن يجب أن يكون دائماً وزارة الأوقاف 23 للـ 100% (إربد وعمان والزرقاء والعقبة)
+            val autoMethod = methodForCity(city)
+            val method = when {
+                storedMethod == null -> autoMethod // تثبيت جديد: استخدم الصحيح للمدينة
+                city.countryEn.equals("Jordan", ignoreCase = true) -> 23 // إجبار الأردن على 23 حتى لو كان المخزن 4
+                else -> storedMethod
+            }
+            // احفظ التصحيح فوراً إذا اختلف
+            if (method != storedMethod) {
+                app.dataStore.edit { it[KEY_METHOD] = method }
             }
             _uiState.value = _uiState.value.copy(city = city, methodId = method, school = school)
             refresh()
