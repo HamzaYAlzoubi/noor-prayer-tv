@@ -113,7 +113,7 @@ fun HomeScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "صلوات اليوم  •  5 فروض  •  ${state.gregorianDate.substringBefore(",")}",
+                    text = "صلوات اليوم  •  6 مواقيت  •  ${state.gregorianDate.substringBefore(",")}",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium,
                     letterSpacing = 1.sp,
@@ -130,7 +130,7 @@ fun HomeScreen(
                 }
             }
 
-            // PrayerRow - 5 بطاقات تأخذ 100% من عرض الشاشة بالتساوي (بدون مساحة سادسة فارغة)
+            // PrayerRow - 6 بطاقات (5 فروض + الشروق) تأخذ 100% من عرض الشاشة بالتساوي weight 1f
             if (state.error != null && state.prayers.isEmpty()) {
                 Box(
                     modifier = Modifier
@@ -148,7 +148,7 @@ fun HomeScreen(
             } else {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     state.prayers.forEach { prayer ->
                         PrayerCard(

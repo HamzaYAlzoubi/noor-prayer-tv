@@ -44,6 +44,21 @@ import com.noor.prayertv.ui.theme.GoldMuted
 import com.noor.prayertv.ui.theme.GoldPrimary
 import com.noor.prayertv.ui.theme.TextPrimary
 import com.noor.prayertv.ui.theme.TextSecondary
+import java.util.Locale
+
+private fun to12h(time24: String): String {
+    return try {
+        val parts = time24.split(":")
+        if (parts.size < 2) return time24
+        val h24 = parts[0].trim().toInt()
+        val m = parts[1].take(2).trim().toInt()
+        val h12 = if (h24 % 12 == 0) 12 else h24 % 12
+        val suffix = if (h24 < 12) "ص" else "م"
+        String.format(Locale.ENGLISH, "%02d:%02d %s", h12, m, suffix)
+    } catch (e: Exception) {
+        time24
+    }
+}
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
@@ -58,10 +73,13 @@ fun PrayerCard(
         animationSpec = tween(150), label = "scale"
     )
 
-    // الخلفية: مميزة للصلاة القادمة بدون شريط علوي
+    val isSunrise = prayer.nameEn == "Sunrise"
+
+    // الخلفية: مميزة للصلاة القادمة بدون شريط علوي - الشروق بتمييز خفيف ذهبي muted
     val bg = when {
         isFocused -> BgSurfaceFocused
         prayer.isNext -> Color(0xFF22332D) // أخضر غامق مميز للقادمة
+        isSunrise -> BgSurface // الشروق نفس الخلفية لكن مع تمييز نصي GoldMuted
         else -> BgSurface
     }
 
@@ -166,37 +184,49 @@ fun PrayerCard(
                     }
                 }
 
-                // الوسط: الاسم العربي كبير + الإنجليزي صغير (مرة واحدة فقط - لا تكرار)
+                // الوسط: الاسم العربي + الإنجليزي (مرة واحدة فقط)
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
                     Text(
                         text = prayer.nameAr,
-                        fontSize = 20.sp,
+                        fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = if (prayer.isNext) GoldPrimary else TextPrimary,
+                        color = when {
+                            prayer.isNext -> GoldPrimary
+                            isSunrise -> GoldMuted
+                            else -> TextPrimary
+                        },
                         textAlign = TextAlign.Start,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         text = prayer.nameEn,
-                        fontSize = 12.sp,
+                        fontSize = 11.sp,
                         fontWeight = FontWeight.Medium,
-                        color = if (prayer.isNext) GoldPrimary.copy(alpha = 0.85f) else TextSecondary,
+                        color = when {
+                            prayer.isNext -> GoldPrimary.copy(alpha = 0.85f)
+                            isSunrise -> GoldMuted.copy(alpha = 0.85f)
+                            else -> TextSecondary
+                        },
                         textAlign = TextAlign.Start,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
 
-                // الأسفل: الوقت بخط كبير وواضح داخل الإطار - لا يخرج أبداً
+                // الأسفل: الوقت 12h بصيغة ص/م داخل الإطار - يناسب 6 بطاقات بعرض weight 1f
                 Text(
-                    text = prayer.time,
-                    fontSize = 28.sp,
+                    text = to12h(prayer.time),
+                    fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
-                    color = if (prayer.isNext) GoldPrimary else TextPrimary,
+                    color = when {
+                        prayer.isNext -> GoldPrimary
+                        isSunrise -> GoldMuted
+                        else -> TextPrimary
+                    },
                     letterSpacing = 0.3.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Visible,

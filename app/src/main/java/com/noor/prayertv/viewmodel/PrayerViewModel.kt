@@ -3,6 +3,9 @@ package com.noor.prayertv.viewmodel
 import android.app.Application
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -29,7 +32,7 @@ data class PrayerUiState(
     val isLoading: Boolean = true,
     val error: String? = null,
     val timingData: TimingData? = null,
-    val prayers: List<PrayerInfo> = emptyList(), // 5 فروض فقط (بدون شروق)
+    val prayers: List<PrayerInfo> = emptyList(), // 6 مواقيت (5 فروض + الشروق)
     val nextPrayer: PrayerInfo? = null,
     val nextPrayerCountdown: String = "--:--:--",
     val hijriDate: String = "",
@@ -56,6 +59,15 @@ class PrayerViewModel(application: Application) : AndroidViewModel(application) 
         private val KEY_CITY_INDEX = intPreferencesKey("city_index")
         private val KEY_METHOD = intPreferencesKey("method_id")
         private val KEY_SCHOOL = intPreferencesKey("school")
+        // Custom city persistence keys
+        private val KEY_CUSTOM_NAME_AR = stringPreferencesKey("custom_city_nameAr")
+        private val KEY_CUSTOM_NAME_EN = stringPreferencesKey("custom_city_nameEn")
+        private val KEY_CUSTOM_COUNTRY_AR = stringPreferencesKey("custom_countryAr")
+        private val KEY_CUSTOM_COUNTRY_EN = stringPreferencesKey("custom_countryEn")
+        private val KEY_CUSTOM_LAT = doublePreferencesKey("custom_lat")
+        private val KEY_CUSTOM_LON = doublePreferencesKey("custom_lon")
+        private val KEY_CUSTOM_TZ = stringPreferencesKey("custom_tz")
+        private val KEY_IS_CUSTOM = booleanPreferencesKey("is_custom")
     }
 
     init {
@@ -64,7 +76,24 @@ class PrayerViewModel(application: Application) : AndroidViewModel(application) 
             val cityIdx = prefs[KEY_CITY_INDEX] ?: 0
             val method = prefs[KEY_METHOD] ?: 4
             val school = prefs[KEY_SCHOOL] ?: 0
-            val city = Cities.all.getOrElse(cityIdx) { Cities.default }
+            val isCustom = prefs[KEY_IS_CUSTOM] ?: false
+            val city = if (isCustom) {
+                try {
+                    City(
+                        nameAr = prefs[KEY_CUSTOM_NAME_AR] ?: Cities.default.nameAr,
+                        nameEn = prefs[KEY_CUSTOM_NAME_EN] ?: Cities.default.nameEn,
+                        countryAr = prefs[KEY_CUSTOM_COUNTRY_AR] ?: Cities.default.countryAr,
+                        countryEn = prefs[KEY_CUSTOM_COUNTRY_EN] ?: Cities.default.countryEn,
+                        latitude = prefs[KEY_CUSTOM_LAT] ?: Cities.default.latitude,
+                        longitude = prefs[KEY_CUSTOM_LON] ?: Cities.default.longitude,
+                        timeZone = prefs[KEY_CUSTOM_TZ] ?: Cities.default.timeZone
+                    )
+                } catch (e: Exception) {
+                    Cities.all.getOrElse(cityIdx) { Cities.default }
+                }
+            } else {
+                Cities.all.getOrElse(cityIdx) { Cities.default }
+            }
             _uiState.value = _uiState.value.copy(city = city, methodId = method, school = school)
             refresh()
             startTicker()
@@ -106,9 +135,10 @@ class PrayerViewModel(application: Application) : AndroidViewModel(application) 
 
                 val nowMinutes = minutesNow()
                 val timings = data.timings
-                // 5 فروض فقط - الشروق ليس فرض فلا نحسبه كـ "قادمة"
+                // 6 مواقيت (5 فروض + الشروق) - الشروق ثاني بطاقة بعد الفجر، والقادمة تشمل الشروق
                 val ordered = listOf(
                     "Fajr" to timings.fajr,
+                    "Sunrise" to timings.sunrise,
                     "Dhuhr" to timings.dhuhr,
                     "Asr" to timings.asr,
                     "Maghrib" to timings.maghrib,
@@ -121,8 +151,8 @@ class PrayerViewModel(application: Application) : AndroidViewModel(application) 
                 if (nextName == null) nextName = "Fajr"
 
                 val allPrayers = timings.toPrayerList(nextName, nowMinutes)
-                // فلترة الشروق من العرض - 5 فقط
-                val prayers = allPrayers.filter { it.nameEn != "Sunrise" }
+                // 6 مواقيت كاملة - إبقاء الشروق كبطاقة ثانية بعد الفجر
+                val prayers = allPrayers // لا فلترة - 6 بطاقات
 
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
@@ -176,7 +206,27 @@ class PrayerViewModel(application: Application) : AndroidViewModel(application) 
     fun selectCity(index: Int) {
         val city = Cities.all.getOrElse(index) { Cities.default }
         viewModelScope.launch {
-            app.dataStore.edit { it[KEY_CITY_INDEX] = index }
+            app.dataStore.edit {
+                it[KEY_CITY_INDEX] = index
+                it[KEY_IS_CUSTOM] = false
+            }
+            _uiState.value = _uiState.value.copy(city = city)
+            refresh()
+        }
+    }
+
+    fun selectCustomCity(city: City) {
+        viewModelScope.launch {
+            app.dataStore.edit {
+                it[KEY_CUSTOM_NAME_AR] = city.nameAr
+                it[KEY_CUSTOM_NAME_EN] = city.nameEn
+                it[KEY_CUSTOM_COUNTRY_AR] = city.countryAr
+                it[KEY_CUSTOM_COUNTRY_EN] = city.countryEn
+                it[KEY_CUSTOM_LAT] = city.latitude
+                it[KEY_CUSTOM_LON] = city.longitude
+                it[KEY_CUSTOM_TZ] = city.timeZone
+                it[KEY_IS_CUSTOM] = true
+            }
             _uiState.value = _uiState.value.copy(city = city)
             refresh()
         }
