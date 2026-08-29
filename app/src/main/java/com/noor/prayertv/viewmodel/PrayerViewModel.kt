@@ -256,7 +256,8 @@ class PrayerViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     private fun methodForCity(city: City): Int = when (city.countryEn.lowercase()) {
-        "jordan", "jordan - bani kinanah" -> 23 // وزارة الأوقاف الأردنية - 100% لخرجا/إربد/عمان
+        // خرجا-إربد يبقى أم القرى كما طلبت (لا وزارة أوقاف)
+        "jordan", "jordan - bani kinanah" -> 4 // أم القرى لخرجا/إربد حسب طلبك الأخير
         "egypt" -> 5 // الهيئة المصرية
         "turkey" -> 13 // Diyanet
         "algeria" -> 19

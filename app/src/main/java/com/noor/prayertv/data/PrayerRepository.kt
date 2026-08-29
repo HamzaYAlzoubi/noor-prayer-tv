@@ -38,9 +38,11 @@ class PrayerRepository {
         return SimpleDateFormat("MM-dd", Locale.ENGLISH).format(Date())
     }
 
-    // 100% للأردن: جلب من الجدول الرسمي لوزارة الأوقاف (خرجا وإربد وعمان والباقي)
+    // 100% للأردن: جلب من الجدول الرسمي - لكن خرجا/إربد يبقيان أم القرى كما طلبت
     suspend fun getOfficialJordanIfNeeded(city: com.noor.prayertv.data.models.City): JordanTimings? {
-        if (city.countryEn.lowercase() != "jordan") return null
+        val isJordan = city.countryEn.lowercase().contains("jordan")
+        if (!isJordan) return null
+        if (city.nameEn.lowercase() == "kharja" || city.nameEn.lowercase() == "irbid") return null
         return try {
             JordanOfficialDataSource.getOfficialTimings(city.nameEn, todayMmDd())
         } catch (e: Exception) {
