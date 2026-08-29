@@ -85,6 +85,7 @@ data class CalculationMethod(
 
 object CalculationMethods {
     val all = listOf(
+        CalculationMethod(23, "Ministry of Awqaf, Jordan", "وزارة الأوقاف الأردنية", "الأردن - 18° / 18° +5 المغرب"),
         CalculationMethod(4, "Umm Al-Qura, Makkah", "أم القرى - مكة", "السعودية - 18.5° / 90 دقيقة"),
         CalculationMethod(5, "Egyptian General Authority", "الهيئة المصرية", "مصر - 19.5° / 17.5°"),
         CalculationMethod(3, "Muslim World League", "رابطة العالم الإسلامي", "أوروبا وأمريكا - 18° / 17°"),
