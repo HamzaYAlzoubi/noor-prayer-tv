@@ -85,8 +85,8 @@ fun TvNavCard(
             focusedContainerColor = BgSurfaceFocused
         ),
         border = androidx.tv.material3.ClickableSurfaceDefaults.border(
-            focusedBorder = BorderStroke(3.dp, GoldPrimary),
-            border = BorderStroke(1.dp, GoldMuted.copy(alpha = 0.18f))
+            focusedBorder = androidx.tv.material3.Border(BorderStroke(3.dp, GoldPrimary)),
+            border = androidx.tv.material3.Border(BorderStroke(1.dp, GoldMuted.copy(alpha = 0.18f)))
         ),
         scale = androidx.tv.material3.ClickableSurfaceDefaults.scale(focusedScale = 1.08f),
         glow = androidx.tv.material3.ClickableSurfaceDefaults.glow(
@@ -150,7 +150,7 @@ fun TvActionCard(
             focusedContainerColor = BgSurfaceFocused
         ),
         border = androidx.tv.material3.ClickableSurfaceDefaults.border(
-            focusedBorder = BorderStroke(3.dp, GoldPrimary)
+            focusedBorder = androidx.tv.material3.Border(BorderStroke(3.dp, GoldPrimary))
         ),
         scale = androidx.tv.material3.ClickableSurfaceDefaults.scale(focusedScale = 1.05f)
     ) {

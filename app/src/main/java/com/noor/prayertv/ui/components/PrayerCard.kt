@@ -70,9 +70,9 @@ fun PrayerCard(
     }
 
     val border = when {
-        isFocused -> BorderStroke(3.dp, GoldPrimary)
-        prayer.isNext -> BorderStroke(2.dp, GoldPrimary.copy(alpha = 0.9f))
-        else -> BorderStroke(1.dp, GoldMuted.copy(alpha = 0.2f))
+        isFocused -> androidx.tv.material3.Border(BorderStroke(3.dp, GoldPrimary))
+        prayer.isNext -> androidx.tv.material3.Border(BorderStroke(2.dp, GoldPrimary.copy(alpha = 0.9f)))
+        else -> androidx.tv.material3.Border(BorderStroke(1.dp, GoldMuted.copy(alpha = 0.2f)))
     }
 
     val shape = RoundedCornerShape(20.dp)
@@ -105,7 +105,7 @@ fun PrayerCard(
             pressedContainerColor = BgSurfaceFocused
         ),
         border = androidx.tv.material3.ClickableSurfaceDefaults.border(
-            focusedBorder = BorderStroke(3.dp, GoldPrimary),
+            focusedBorder = androidx.tv.material3.Border(BorderStroke(3.dp, GoldPrimary)),
             border = border
         ),
         scale = androidx.tv.material3.ClickableSurfaceDefaults.scale(

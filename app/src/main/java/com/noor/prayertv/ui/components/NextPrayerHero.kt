@@ -95,8 +95,8 @@ fun NextPrayerHero(
             focusedContainerColor = Color(0xFF1E2E28)
         ),
         border = androidx.tv.material3.ClickableSurfaceDefaults.border(
-            focusedBorder = BorderStroke(3.dp, GoldPrimary),
-            border = BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.25f))
+            focusedBorder = androidx.tv.material3.Border(BorderStroke(3.dp, GoldPrimary)),
+            border = androidx.tv.material3.Border(BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.25f)))
         ),
         scale = androidx.tv.material3.ClickableSurfaceDefaults.scale(focusedScale = 1.02f),
         glow = androidx.tv.material3.ClickableSurfaceDefaults.glow(

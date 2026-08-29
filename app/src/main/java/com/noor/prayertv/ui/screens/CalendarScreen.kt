@@ -105,7 +105,7 @@ fun CalendarScreen(
                         focusedContainerColor = GoldPrimary
                     ),
                     border = androidx.tv.material3.ClickableSurfaceDefaults.border(
-                        focusedBorder = BorderStroke(3.dp, GoldPrimary)
+                        focusedBorder = androidx.tv.material3.Border(BorderStroke(3.dp, GoldPrimary))
                     ),
                     scale = androidx.tv.material3.ClickableSurfaceDefaults.scale(focusedScale = 1.05f)
                 ) {

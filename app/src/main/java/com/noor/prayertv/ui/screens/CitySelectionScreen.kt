@@ -91,7 +91,7 @@ fun CitySelectionScreen(
                         focusedContainerColor = GoldPrimary
                     ),
                     border = androidx.tv.material3.ClickableSurfaceDefaults.border(
-                        focusedBorder = BorderStroke(3.dp, GoldPrimary)
+                        focusedBorder = androidx.tv.material3.Border(BorderStroke(3.dp, GoldPrimary))
                     ),
                     scale = androidx.tv.material3.ClickableSurfaceDefaults.scale(focusedScale = 1.05f)
                 ) {
@@ -153,8 +153,8 @@ private fun CityRow(
             focusedContainerColor = BgSurfaceFocused
         ),
         border = androidx.tv.material3.ClickableSurfaceDefaults.border(
-            focusedBorder = BorderStroke(3.dp, GoldPrimary),
-            border = if (isSelected) BorderStroke(2.dp, GoldPrimary.copy(alpha = 0.6f)) else BorderStroke(1.dp, Color.Transparent)
+            focusedBorder = androidx.tv.material3.Border(BorderStroke(3.dp, GoldPrimary)),
+            border = if (isSelected) androidx.tv.material3.Border(BorderStroke(2.dp, GoldPrimary.copy(alpha = 0.6f))) else androidx.tv.material3.Border(BorderStroke(1.dp, Color.Transparent))
         ),
         scale = androidx.tv.material3.ClickableSurfaceDefaults.scale(focusedScale = 1.02f),
         glow = androidx.tv.material3.ClickableSurfaceDefaults.glow(
