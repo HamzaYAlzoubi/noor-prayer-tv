@@ -76,7 +76,6 @@ fun PrayerCard(
 
     Surface(
         modifier = modifier
-            .width(208.dp)
             .height(152.dp)
             .scale(scale)
             .shadow(

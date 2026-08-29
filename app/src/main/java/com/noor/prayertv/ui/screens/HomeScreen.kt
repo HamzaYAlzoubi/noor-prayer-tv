@@ -130,7 +130,7 @@ fun HomeScreen(
                 }
             }
 
-            // PrayerRow - 5 بطاقات فقط (بدون شروق) - تصميم جديد لا يقطع الوقت
+            // PrayerRow - 5 بطاقات تأخذ 100% من عرض الشاشة بالتساوي (بدون مساحة سادسة فارغة)
             if (state.error != null && state.prayers.isEmpty()) {
                 Box(
                     modifier = Modifier
@@ -146,17 +146,14 @@ fun HomeScreen(
                     }
                 }
             } else {
-                LazyRow(
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(14.dp),
-                    contentPadding = PaddingValues(vertical = 10.dp, horizontal = 4.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(
-                        items = state.prayers,
-                        key = { it.nameEn }
-                    ) { prayer ->
+                    state.prayers.forEach { prayer ->
                         PrayerCard(
                             prayer = prayer,
+                            modifier = Modifier.weight(1f),
                             onClick = { }
                         )
                     }
