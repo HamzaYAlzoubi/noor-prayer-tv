@@ -12,8 +12,7 @@ data class City(
 
 object Cities {
     val all = listOf(
-        // الأردن - أولاً وافتراضي: خرجا لواء بني كنانة إربد
-        City("خرجا", "Kharja", "الأردن - بني كنانة", "Jordan - Bani Kinanah", 32.65988, 35.88782, "Asia/Amman"),
+        // الأردن - أولاً وافتراضي: إربد (رسمي مطابق لوزارة الأوقاف)
         City("إربد", "Irbid", "الأردن", "Jordan", 32.55556, 35.85, "Asia/Amman"),
         City("عمان", "Amman", "الأردن", "Jordan", 31.9454, 35.9284, "Asia/Amman"),
         City("الزرقاء", "Zarqa", "الأردن", "Jordan", 32.0728, 36.0872, "Asia/Amman"),
@@ -73,7 +72,7 @@ object Cities {
         // جزر القمر
         City("موروني", "Moroni", "جزر القمر", "Comoros", -11.7022, 43.2551, "Indian/Comoro")
     )
-    val default = all[0] // خرجا - بني كنانة - إربد
+    val default = all[0] // إربد
 }
 
 data class CalculationMethod(
