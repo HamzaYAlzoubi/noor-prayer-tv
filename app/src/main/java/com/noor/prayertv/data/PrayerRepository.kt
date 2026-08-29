@@ -67,4 +67,5 @@ class PrayerRepository {
     } catch (e: Exception) {
         Result.failure(e)
     }
+    // Qibla محذوف من UI التلفاز - لكن نبقي الدالة للتوافق
 }

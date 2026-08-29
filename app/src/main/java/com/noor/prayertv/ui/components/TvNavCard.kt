@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
@@ -43,9 +42,8 @@ import com.noor.prayertv.ui.theme.TextPrimary
 import com.noor.prayertv.ui.theme.TextSecondary
 
 enum class NavType(val ar: String, val en: String, val icon: ImageVector) {
-    QIBLA("القبلة", "Qibla", Icons.Filled.Explore),
-    CALENDAR("التقويم", "Calendar", Icons.Filled.CalendarMonth),
     CITY("المدينة", "City", Icons.Filled.LocationOn),
+    CALENDAR("التقويم", "Calendar", Icons.Filled.CalendarMonth),
     METHOD("الحساب", "Method", Icons.Filled.Settings)
 }
 
@@ -60,7 +58,7 @@ fun TvNavCard(
     var isFocused by remember { mutableStateOf(false) }
     val effectiveFocused = isFocusedOverride ?: isFocused
     val scale by animateFloatAsState(
-        targetValue = if (effectiveFocused) 1.08f else 1f,
+        targetValue = if (effectiveFocused) 1.06f else 1f,
         animationSpec = tween(150), label = "navScale"
     )
     val shape = RoundedCornerShape(16.dp)
@@ -86,11 +84,11 @@ fun TvNavCard(
         ),
         border = androidx.tv.material3.ClickableSurfaceDefaults.border(
             focusedBorder = androidx.tv.material3.Border(BorderStroke(3.dp, GoldPrimary)),
-            border = androidx.tv.material3.Border(BorderStroke(1.dp, GoldMuted.copy(alpha = 0.18f)))
+            border = androidx.tv.material3.Border(BorderStroke(1.dp, GoldMuted.copy(alpha = 0.35f)))
         ),
-        scale = androidx.tv.material3.ClickableSurfaceDefaults.scale(focusedScale = 1.08f),
+        scale = androidx.tv.material3.ClickableSurfaceDefaults.scale(focusedScale = 1.06f),
         glow = androidx.tv.material3.ClickableSurfaceDefaults.glow(
-            focusedGlow = androidx.tv.material3.Glow(GoldPrimary.copy(alpha = 0.5f), 10.dp)
+            focusedGlow = androidx.tv.material3.Glow(GoldPrimary.copy(alpha = 0.55f), 10.dp)
         )
     ) {
         Row(

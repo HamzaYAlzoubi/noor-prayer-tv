@@ -1,9 +1,11 @@
 package com.noor.prayertv.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,9 +15,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Mosque
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -33,15 +36,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.tv.material3.ExperimentalTvMaterial3Api
+import androidx.tv.material3.Surface
 import com.noor.prayertv.ui.components.NavType
 import com.noor.prayertv.ui.components.NextPrayerHero
 import com.noor.prayertv.ui.components.PrayerCard
 import com.noor.prayertv.ui.components.TvNavCard
 import com.noor.prayertv.ui.theme.BgPrimary
+import com.noor.prayertv.ui.theme.BgSurface
+import com.noor.prayertv.ui.theme.BgSurfaceFocused
 import com.noor.prayertv.ui.theme.GoldPrimary
 import com.noor.prayertv.ui.theme.TextPrimary
 import com.noor.prayertv.ui.theme.TextSecondary
-import com.noor.prayertv.viewmodel.PrayerViewModel
 
 @Composable
 fun HomeScreen(
@@ -49,12 +55,8 @@ fun HomeScreen(
     onNavigate: (String) -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
-
-    // Focus requesters - Rule #1: explicit initial focus
     val heroFocusRequester = remember { FocusRequester() }
-    val prayerRowFocusRequester = remember { FocusRequester() }
 
-    // Cold-launch test: hero gets focus immediately
     LaunchedEffect(Unit) {
         heroFocusRequester.requestFocus()
     }
@@ -63,10 +65,9 @@ fun HomeScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(BgPrimary)
-            // Overscan safe area 48dp
             .padding(48.dp)
     ) {
-        // Background mosque silhouette gradient
+        // خلفية متدرجة خفيفة
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -82,17 +83,18 @@ fun HomeScreen(
 
         Column(
             modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
-            // TopBar
+            // TopBar - المدينة قابلة للضغط مباشرة
             TopBar(
-                cityName = "${state.city.nameAr} • ${state.city.nameEn}",
+                cityNameAr = state.city.nameAr,
+                cityNameEn = state.city.nameEn,
                 hijri = state.hijriDateAr.ifEmpty { state.hijriDate },
                 gregorian = state.gregorianDate,
-                currentTime = state.currentTime
+                currentTime = state.currentTime,
+                onCityClick = { onNavigate("city") }
             )
 
-            // NextPrayerHero - INITIAL FOCUS (Rule #1)
             NextPrayerHero(
                 nextPrayer = state.nextPrayer,
                 countdown = state.nextPrayerCountdown,
@@ -101,17 +103,16 @@ fun HomeScreen(
                 currentTime = state.currentTime,
                 modifier = Modifier,
                 focusRequester = heroFocusRequester,
-                onClick = { /* focusable entry point */ }
+                onClick = { }
             )
 
-            // Section label
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "صلوات اليوم  •  TODAY'S PRAYERS • ${state.gregorianDate.substringBefore(",")}",
+                    text = "صلوات اليوم  •  5 فروض  •  ${state.gregorianDate.substringBefore(",")}",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium,
                     letterSpacing = 1.sp,
@@ -128,61 +129,59 @@ fun HomeScreen(
                 }
             }
 
-            // PrayerRow - TvLazyRow with focusRestorer (Rule #2: single focus, ordered traversal)
+            // PrayerRow - 5 بطاقات فقط (بدون شروق) - تصميم جديد لا يقطع الوقت
             if (state.error != null && state.prayers.isEmpty()) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(148.dp)
+                        .height(152.dp)
                         .background(Color(0xFF1A1A1A), RoundedCornerShape(16.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(text = state.error ?: "خطأ", color = Color(0xFFE57373), fontSize = 16.sp)
                         Spacer(Modifier.height(8.dp))
-                        Text(text = "اضغط OK لإعادة المحاولة  •  Press OK to retry", color = TextSecondary, fontSize = 13.sp)
+                        Text(text = "اضغط OK لإعادة المحاولة", color = TextSecondary, fontSize = 13.sp)
                     }
                 }
             } else {
                 LazyRow(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    horizontalArrangement = Arrangement.spacedBy(14.dp),
+                    contentPadding = PaddingValues(vertical = 10.dp, horizontal = 4.dp)
                 ) {
-                    itemsIndexed(state.prayers) { index, prayer ->
+                    items(state.prayers) { prayer ->
                         PrayerCard(
                             prayer = prayer,
-                            onClick = { /* could show detail */ }
+                            onClick = { }
                         )
                     }
                 }
             }
 
-            // NavRow - 4 nav cards with explicit focus order
+            // NavRow - 3 أزرار فقط: المدينة أولاً (الأهم) + التقويم + الحساب - لا قبلة
             LazyRow(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(20.dp)
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                contentPadding = PaddingValues(vertical = 8.dp, horizontal = 4.dp)
             ) {
                 item {
-                    TvNavCard(type = NavType.QIBLA, onClick = { onNavigate("qibla") })
+                    TvNavCard(type = NavType.CITY, onClick = { onNavigate("city") })
                 }
                 item {
                     TvNavCard(type = NavType.CALENDAR, onClick = { onNavigate("calendar") })
-                }
-                item {
-                    TvNavCard(type = NavType.CITY, onClick = { onNavigate("city") })
                 }
                 item {
                     TvNavCard(type = NavType.METHOD, onClick = { onNavigate("method") })
                 }
             }
 
-            // Footer hint
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "استخدم الريموت للتنقل  •  Use D-Pad to navigate  •  OK للاختيار  •  BACK للرجوع",
+                    text = "استخدم الريموت للتنقل  •  OK للاختيار  •  BACK للرجوع  •  اضغط على المدينة لتغييرها",
                     fontSize = 11.sp,
                     color = TextSecondary.copy(alpha = 0.6f),
                     letterSpacing = 0.5.sp
@@ -192,19 +191,22 @@ fun HomeScreen(
     }
 }
 
+@OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun TopBar(
-    cityName: String,
+    cityNameAr: String,
+    cityNameEn: String,
     hijri: String,
     gregorian: String,
-    currentTime: String
+    currentTime: String,
+    onCityClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(72.dp)
+            .height(78.dp)
             .background(Color(0xFF16201C), RoundedCornerShape(16.dp))
-            .padding(horizontal = 20.dp),
+            .padding(horizontal = 18.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -244,37 +246,49 @@ private fun TopBar(
             }
         }
 
-        // City pill + time
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        // City pill - قابل للفوكس بوضوح: بوردر 3dp عند الفوكس + إيحاء أنه زر
+        Surface(
+            onClick = onCityClick,
+            shape = androidx.tv.material3.ClickableSurfaceDefaults.shape(RoundedCornerShape(14.dp)),
+            colors = androidx.tv.material3.ClickableSurfaceDefaults.colors(
+                containerColor = BgSurface,
+                focusedContainerColor = BgSurfaceFocused
+            ),
+            border = androidx.tv.material3.ClickableSurfaceDefaults.border(
+                focusedBorder = androidx.tv.material3.Border(BorderStroke(3.dp, GoldPrimary)),
+                border = androidx.tv.material3.Border(BorderStroke(1.dp, GoldPrimary.copy(alpha = 0.35f)))
+            ),
+            scale = androidx.tv.material3.ClickableSurfaceDefaults.scale(focusedScale = 1.05f),
+            glow = androidx.tv.material3.ClickableSurfaceDefaults.glow(
+                focusedGlow = androidx.tv.material3.Glow(GoldPrimary.copy(alpha = 0.5f), 10.dp)
+            )
         ) {
-            Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = cityName,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = TextPrimary
+            Row(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.LocationOn,
+                    contentDescription = null,
+                    tint = GoldPrimary,
+                    modifier = Modifier.size(22.dp)
                 )
-                Text(
-                    text = currentTime,
-                    fontSize = 12.sp,
-                    color = GoldPrimary,
-                    fontWeight = FontWeight.Bold
-                )
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = "$cityNameAr • $cityNameEn",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
+                    )
+                    Text(
+                        text = "$currentTime  •  اضغط OK للتغيير",
+                        fontSize = 11.sp,
+                        color = GoldPrimary,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
-            Box(
-                modifier = Modifier
-                    .width(2.dp)
-                    .height(32.dp)
-                    .background(GoldPrimary.copy(alpha = 0.3f), RoundedCornerShape(1.dp))
-            )
-            Text(
-                text = "ALADHAN • أم القرى",
-                fontSize = 10.sp,
-                color = TextSecondary.copy(alpha = 0.7f),
-                letterSpacing = 0.8.sp
-            )
         }
     }
 }

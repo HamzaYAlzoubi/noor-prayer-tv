@@ -3,7 +3,6 @@ package com.noor.prayertv.viewmodel
 import android.app.Application
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
-import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -18,7 +17,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -31,7 +29,7 @@ data class PrayerUiState(
     val isLoading: Boolean = true,
     val error: String? = null,
     val timingData: TimingData? = null,
-    val prayers: List<PrayerInfo> = emptyList(),
+    val prayers: List<PrayerInfo> = emptyList(), // 5 فروض فقط (بدون شروق)
     val nextPrayer: PrayerInfo? = null,
     val nextPrayerCountdown: String = "--:--:--",
     val hijriDate: String = "",
@@ -40,7 +38,6 @@ data class PrayerUiState(
     val city: City = Cities.default,
     val methodId: Int = 4,
     val school: Int = 0, // 0 Shafi, 1 Hanafi
-    val qiblaDirection: Double? = null,
     val currentTime: String = "",
     val isRefreshing: Boolean = false
 )
@@ -63,7 +60,6 @@ class PrayerViewModel(application: Application) : AndroidViewModel(application) 
 
     init {
         viewModelScope.launch {
-            // Load prefs
             val prefs = app.dataStore.data.first()
             val cityIdx = prefs[KEY_CITY_INDEX] ?: 0
             val method = prefs[KEY_METHOD] ?: 4
@@ -73,7 +69,6 @@ class PrayerViewModel(application: Application) : AndroidViewModel(application) 
             refresh()
             startTicker()
         }
-        // tick every second for countdown
         viewModelScope.launch {
             while (true) {
                 delay(1000)
@@ -109,12 +104,11 @@ class PrayerViewModel(application: Application) : AndroidViewModel(application) 
                 val greg = data.date.gregorian
                 val gregStr = "${greg.weekday.en}, ${greg.day} ${greg.month.en} ${greg.year}"
 
-                // Determine next prayer
                 val nowMinutes = minutesNow()
                 val timings = data.timings
+                // 5 فروض فقط - الشروق ليس فرض فلا نحسبه كـ "قادمة"
                 val ordered = listOf(
                     "Fajr" to timings.fajr,
-                    "Sunrise" to timings.sunrise,
                     "Dhuhr" to timings.dhuhr,
                     "Asr" to timings.asr,
                     "Maghrib" to timings.maghrib,
@@ -124,9 +118,11 @@ class PrayerViewModel(application: Application) : AndroidViewModel(application) 
                 for ((name, time) in ordered) {
                     if (toMinutes(time) > nowMinutes) { nextName = name; break }
                 }
-                if (nextName == null) nextName = "Fajr" // tomorrow's fajr
+                if (nextName == null) nextName = "Fajr"
 
-                val prayers = timings.toPrayerList(nextName, nowMinutes)
+                val allPrayers = timings.toPrayerList(nextName, nowMinutes)
+                // فلترة الشروق من العرض - 5 فقط
+                val prayers = allPrayers.filter { it.nameEn != "Sunrise" }
 
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
@@ -140,23 +136,12 @@ class PrayerViewModel(application: Application) : AndroidViewModel(application) 
                     error = null
                 )
                 updateCountdown()
-                // fetch qibla silently
-                fetchQibla()
             }.onFailure { e ->
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     isRefreshing = false,
                     error = e.message ?: "خطأ في الاتصال - تأكد من الإنترنت"
                 )
-            }
-        }
-    }
-
-    private fun fetchQibla() {
-        viewModelScope.launch {
-            val c = _uiState.value.city
-            repo.getQibla(c.latitude, c.longitude).onSuccess { q ->
-                _uiState.value = _uiState.value.copy(qiblaDirection = q.data.direction)
             }
         }
     }
@@ -168,7 +153,7 @@ class PrayerViewModel(application: Application) : AndroidViewModel(application) 
         val nowSec = now.get(Calendar.SECOND)
         val targetMin = toMinutes(next.time)
         var diffSec = targetMin * 60 - (nowMin * 60 + nowSec)
-        if (diffSec < 0) diffSec += 24 * 3600 // tomorrow
+        if (diffSec < 0) diffSec += 24 * 3600
         val h = diffSec / 3600
         val m = (diffSec % 3600) / 60
         val s = diffSec % 60
